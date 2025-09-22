@@ -20,13 +20,23 @@ import {
   Plus,
   Copy,
   Calendar,
-  BookOpen
+  BookOpen,
+  Video,
+  Brain,
+  Target,
+  RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
 import ClassroomPosts from '@/components/classroom/posts'
 import ClassroomAssignments from '@/components/classroom/assignments'
 import ClassroomStudents from '@/components/classroom/students'
 import ClassroomSettings from '@/components/classroom/settings'
+import TeacherVideoClasses from '@/components/video-classes/teacher-video-classes'
+import StudentVideoClasses from '@/components/video-classes/student-video-classes'
+import TeacherQuizzes from '@/components/quizzes/teacher-quizzes'
+import StudentQuizzes from '@/components/quizzes/student-quizzes'
+import { DPPList } from '@/components/dpp/DPPList'
+import RefresherMain from '@/components/refresher/RefresherMain'
 
 export default function ClassroomPage() {
   const params = useParams()
@@ -40,6 +50,12 @@ export default function ClassroomPage() {
   const { data: classroom, isLoading } = useQuery({
     queryKey: ['classroom', classroomId],
     queryFn: () => apiClient.getClassroom(classroomId),
+  })
+
+  const { data: videoClasses } = useQuery({
+    queryKey: ['video-classes', classroomId],
+    queryFn: () => apiClient.getClassroomVideoClasses(classroomId),
+    enabled: !!classroomId
   })
 
   const { data: studentsResponse } = useQuery({
@@ -176,7 +192,7 @@ export default function ClassroomPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-8' : 'grid-cols-7'}`}>
             <TabsTrigger value="posts" className="flex items-center space-x-2">
               <MessageSquare className="h-4 w-4" />
               <span>Posts</span>
@@ -184,6 +200,22 @@ export default function ClassroomPage() {
             <TabsTrigger value="assignments" className="flex items-center space-x-2">
               <FileText className="h-4 w-4" />
               <span>Assignments</span>
+            </TabsTrigger>
+            <TabsTrigger value="dpp" className="flex items-center space-x-2">
+              <Target className="h-4 w-4" />
+              <span>DPP</span>
+            </TabsTrigger>
+            <TabsTrigger value="refresher" className="flex items-center space-x-2">
+              <RefreshCw className="h-4 w-4" />
+              <span>Refresher</span>
+            </TabsTrigger>
+            <TabsTrigger value="quizzes" className="flex items-center space-x-2">
+              <Brain className="h-4 w-4" />
+              <span>Quizzes</span>
+            </TabsTrigger>
+            <TabsTrigger value="video-classes" className="flex items-center space-x-2">
+              <Video className="h-4 w-4" />
+              <span>Video Classes</span>
             </TabsTrigger>
             <TabsTrigger value="students" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
@@ -203,6 +235,32 @@ export default function ClassroomPage() {
 
           <TabsContent value="assignments" className="space-y-6">
             <ClassroomAssignments classroomId={classroomId} isTeacher={isTeacher} />
+          </TabsContent>
+
+          <TabsContent value="dpp" className="space-y-6">
+            <DPPList 
+              classroomId={classroomId} 
+              videoClasses={(videoClasses as any)?.classes || []} 
+            />
+          </TabsContent>
+
+          <TabsContent value="refresher" className="space-y-6">
+            <RefresherMain classroomId={classroomId} isTeacher={isTeacher} />
+          </TabsContent>
+
+          <TabsContent value="quizzes" className="space-y-6">{isTeacher ? (
+              <TeacherQuizzes classroomId={classroomId} />
+            ) : (
+              <StudentQuizzes classroomId={classroomId} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="video-classes" className="space-y-6">
+            {isTeacher ? (
+              <TeacherVideoClasses classroomId={classroomId} />
+            ) : (
+              <StudentVideoClasses classroomId={classroomId} />
+            )}
           </TabsContent>
 
           <TabsContent value="students" className="space-y-6">
